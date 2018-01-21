@@ -10,12 +10,10 @@ import logging
 #-----------------
 API_TOKEN = constants.token
 
+
 WEBHOOK_HOST = 'weather-telegram-bott.herokuapp.com'
 WEBHOOK_PORT = 8443
 WEBHOOT_LISTEN = '0.0.0.0'
-
-WEBHOOK_SSL_CERT = './webhook_cert.pem'
-WEBHOOK_SSL_PRIV = './webhook_pkey.pem'
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (API_TOKEN)
@@ -153,13 +151,12 @@ Wind speed: {5}""".format(result['name'], result['description'],
 bot.remove_webhook()
 
 
-bot.set_webhook(url=WEBHOOK_URL_BASE+WEBHOOK_URL_PATH,
-                certificate=open(WEBHOOK_SSL_CERT, 'r'))
+bot.set_webhook(url=WEBHOOK_URL_BASE+WEBHOOK_URL_PATH)
 
-httpd = http.server.HTTPServer((WEBHOOT_LISTEN, WEBHOOK_PORT), WebhookHandler)
+httpd = http.server.HTTPServer((WEBHOOT_LISTEN, WEBHOOK_PORT),
+                               WebhookHandler)
 
-httpd.socket = ssl.wrap_socket(httpd.socket, certfile=WEBHOOK_SSL_CERT,
-                               keyfile=WEBHOOK_SSL_PRIV, server_side=True)
+httpd.socket = ssl.wrap_socket(httpd.socket)
 
 httpd.serve_forever()
 
