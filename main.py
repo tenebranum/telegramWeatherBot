@@ -109,7 +109,7 @@ Wind speed: {5}""".format(result['name'], result['description'],
 @server.route("/")
 def webhook():
     bot.remote_webhook()
-    bot.set_webhook(url="https://weather-telegram-bott.herokuapp.com/")
+    bot.set_webhook(url="https://aqueous-sierra-16451.herokuapp.com/")
     return "!", 200
 
 
