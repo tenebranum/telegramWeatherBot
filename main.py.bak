@@ -3,19 +3,19 @@ import constants
 import requests
 import pickle
 import ssl
-import http.server
+import BaseHTTPServer
 
 import logging
 
 #-----------------
 API_TOKEN = constants.token
 
-WEBHOOK_HOST = 'weather-telegram-bott.herokuapp.com'
+WEBHOOK_HOST = 'https://weather-telegram-bott.herokuapp.com/'
 WEBHOOK_PORT = 8443
 WEBHOOT_LISTEN = '0.0.0.0'
 
-WEBHOOK_SSL_CERT = './webhook_cert.pem'
-WEBHOOK_SSL_PRIV = './webhook_pkey.pem'
+WEBHOOK_SSL_CERT = './cert.pem'
+WEBHOOK_SSL_PRIV = './private.key'
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (API_TOKEN)
@@ -27,7 +27,7 @@ bot = telebot.TeleBot(API_TOKEN)
 #update = bot.get_updates()
 
 
-class WebhookHandler(http.server.BaseHTTPRequestHandler):
+class WebhookHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     server_version = "WebhookHandler/1.0"
 
 
@@ -77,11 +77,11 @@ units = "metric"
 def log(message, answer):
     print("\n-----------")
     from datetime import datetime
-    print((datetime.now()))
-    print(("Message from {0} {1}. ( id = {2} ) \n text : {3}".format(message.from_user.first_name,
+    print(datetime.now())
+    print("Message from {0} {1}. ( id = {2} ) \n text : {3}".format(message.from_user.first_name,
                                                                     message.from_user.last_name,
                                                                     str(message.from_user.id),
-                                                                    message.text)))
+                                                                    message.text))
     print(answer)
 
 
@@ -156,10 +156,9 @@ bot.remove_webhook()
 bot.set_webhook(url=WEBHOOK_URL_BASE+WEBHOOK_URL_PATH,
                 certificate=open(WEBHOOK_SSL_CERT, 'r'))
 
-httpd = http.server.HTTPServer((WEBHOOT_LISTEN, WEBHOOK_PORT), WebhookHandler)
+httpd = BaseHTTPServer.HTTPServer((WEBHOOT_LISTEN, WEBHOOK_PORT), WebhookHandler)
 
 httpd.socket = ssl.wrap_socket(httpd.socket, certfile=WEBHOOK_SSL_CERT,
                                keyfile=WEBHOOK_SSL_PRIV, server_side=True)
 
 httpd.serve_forever()
-
