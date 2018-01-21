@@ -3,7 +3,7 @@ import constants
 import requests
 import pickle
 import os
-from flask import Flask, request
+#from flask import Flask, request
 import logging
 
 #-----------------
@@ -14,7 +14,8 @@ units = "metric"
 
 
 bot = telebot.TeleBot(API_TOKEN)
-server = Flask(__name__)
+bot.delete_webhook()
+#server = Flask(__name__)
 
 def deserialize(file_name):
     with open(file_name, 'rb') as f:
@@ -105,12 +106,14 @@ Wind speed: {5}""".format(result['name'], result['description'],
 
             log(message, '')
 
+if __name__=='__main__':
+    bot.polling(none_stop=True)
 
-@server.route("/")
-def webhook():
-    bot.remote_webhook()
-    bot.set_webhook(url="https://aqueous-sierra-16451.herokuapp.com/")
-    return "!", 200
+#@server.route("/")
+#def webhook():
+#    bot.remote_webhook()
+#    bot.set_webhook(url="https://aqueous-sierra-16451.herokuapp.com/")
+#    return "!", 200
 
 
-server.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
+#server.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
