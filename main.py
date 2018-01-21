@@ -2,57 +2,19 @@ import telebot
 import constants
 import requests
 import pickle
-import ssl
-import http.server
-
+import os
+from flask import Flask, request
 import logging
 
 #-----------------
 API_TOKEN = constants.token
+appid = constants.appid
+units = "metric"
 
 
-WEBHOOK_HOST = 'weather-telegram-bott.herokuapp.com'
-WEBHOOK_PORT = 8443
-WEBHOOT_LISTEN = '0.0.0.0'
 
-WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % (API_TOKEN)
-
-logger = telebot.logger
-telebot.logger.setLevel(logging.INFO)
-#----------
 bot = telebot.TeleBot(API_TOKEN)
-#update = bot.get_updates()
-
-
-class WebhookHandler(http.server.BaseHTTPRequestHandler):
-    server_version = "WebhookHandler/1.0"
-
-
-    def do_HEAD(self):
-        self.send_response(200)
-        self.end_headers()
-
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-
-    def do_POST(self):
-        if self.path == WEBHOOK_URL_PATH and \
-           'content-type' in self.headers and \
-           'content-length' in self.headers and \
-           self.headers['content-type'] == 'application/json':
-            json_string = self.rfile.read(int(self.headers['content-length']))
-
-            self.send_response(200)
-            self.end_headers()
-
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_messages([update.message])
-        else:
-            self.send_error(403)
-            self.end_headers()
-
+server = Flask(__name__)
 
 def deserialize(file_name):
     with open(file_name, 'rb') as f:
@@ -66,10 +28,6 @@ def serialize(data, file_name):
 
 #city = 'Kiev'
 #serialize(city, 'data.pickle')
-
-
-appid = constants.appid
-units = "metric"
 
 
 def log(message, answer):
@@ -148,15 +106,11 @@ Wind speed: {5}""".format(result['name'], result['description'],
             log(message, '')
 
 
-bot.remove_webhook()
+@server.route("/")
+def webhook():
+    bot.remote_webhook()
+    bot.set_webhook(url="https://weather-telegram-bott.herokuapp.com/")
+    return "!", 200
 
 
-bot.set_webhook(url=WEBHOOK_URL_BASE+WEBHOOK_URL_PATH)
-
-httpd = http.server.HTTPServer((WEBHOOT_LISTEN, WEBHOOK_PORT),
-                               WebhookHandler)
-
-httpd.socket = ssl.wrap_socket(httpd.socket)
-
-httpd.serve_forever()
-
+server.run(host="0.0.0.0", port=os.environ.get('PORT', 5000))
